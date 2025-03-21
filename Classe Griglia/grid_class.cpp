@@ -1,14 +1,14 @@
 /*
 void Setup(int sideLenght, float theta, bool ordered); DONE
-void Move(int particle, int direction);
-int FindPosIndex(int x, int y);
-int FindXFromPos(int position);
-int FindYFromPos(int position);
-int ParticlePos(int particle);
-int ParticleX(int particle);
-int ParticleY(int particle);
-bool IsOccupied(int position);
-bool IsOccupied(int x, int y);
+void Move(int particle, int direction); DONE
+int FindPosIndex(int x, int y); DONE
+int FindXFromPos(int position); DONE
+int FindYFromPos(int position); DONE
+int ParticlePos(int particle); DONE
+int ParticleX(int particle); DONE
+int ParticleY(int particle); DONE
+bool IsOccupied(int position); DONE
+bool IsOccupied(int x, int y); DONE
 */
 #include <TRandom3>
 
@@ -97,4 +97,24 @@ GridClass::int FindXFromPos(int position){
 
 GridClass::int FindYFromPos(int position){
     return position / SideLenght;
+}
+
+GridClass::bool IsOccupied(int position){
+    return bool(Grid[position]);
+}
+
+GridClass::bool IsOccupied(int x, int y){
+    return bool(Grid[FindPosIndex(x,y)]);
+}
+
+GridClass::int ParticlePos(int particle){
+    return ParticlesPositions[particle];
+}
+
+GridClass::int ParticleX(int particle){
+    return FindXFromPos(ParticlesPositions[particle]);
+}
+
+GridClass::int ParticleY(int particle){
+    return FindYFromPos(ParticlesPositions[particle]);
 }
