@@ -6,7 +6,7 @@ all functions start with capital letters
 all temporary variables and function parameters start with low letters and have capitals to separate words
 
 */
-#include <TRandom3>
+#include <TRandom3.h>
 
 class GridMSAF
 {

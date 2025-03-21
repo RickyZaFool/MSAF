@@ -10,7 +10,7 @@ int ParticleY(int particle); DONE
 bool IsOccupied(int position); DONE
 bool IsOccupied(int x, int y); DONE
 */
-#include <TRandom3>
+#include <TRandom3.h>
 
 
 GridClass::void Setup(int sideLenght, float theta, bool ordered){
