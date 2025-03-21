@@ -31,12 +31,14 @@ public:
     int ParticleY(int particle);
     bool IsOccupied(int position);
     bool IsOccupied(int x, int y);
-
+    int CheckNeighbors(int position);
+    int GetNumberOfParticles();
+    
 private:
     int SideLenght;
     int Seed = -1;
-    TRandom3 Rnd;
     int NumberOfParticles;
+    TRandom3 Rnd;
     std::vector<int> Grid;
     std::vector<int> ParticlesPositions;
 };

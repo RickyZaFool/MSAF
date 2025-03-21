@@ -24,11 +24,11 @@ void GridMSAF::SetGridSeed(int seed){
 }
 
 void GridMSAF::Setup(int sideLenght, float theta, bool ordered){
+    TCanvas c("c", "Simulation", 800, 600);
     SideLenght = sideLenght;
     if(Seed == -1){
         Rnd.SetSeed(time(0));
     }else{Rnd.SetSeed(Seed);}
-
     NumberOfParticles = int(SideLenght*SideLenght*theta);
     Grid = std::vector<int>(SideLenght*SideLenght);
     ParticlesPositions = std::vector<int>(NumberOfParticles);
@@ -77,27 +77,33 @@ void GridMSAF::Move(int particle, int direction){
     int newX, newY;
     switch (direction)
     {
-    case 1:                   //UP
+    case 0:                   //UP
         newX = originX;
         newY = (originY - 1 + SideLenght)%SideLenght;
         break;
-    case 2:                   //RIGHT
+    case 1:                   //RIGHT
         newX = (originX + 1 + SideLenght)%SideLenght;
         newY = originY;
         break;
-    case 3:                   //DOWN
+    case 2:                   //DOWN
         newX = originX;
         newY = (originY + 1 + SideLenght)%SideLenght;
         break;
-    case 4:                   //LEFT
+    case 3:                   //LEFT
         newX = (originX - 1 + SideLenght)%SideLenght;
         newY = originY;
         break;
     }
     int newPos = FindPosIndex(newX, newY);
-    Grid[originPos] = 0;
-    Grid[newPos] = 1;
-    ParticlesPositions[particle] = newPos;
+    if(!Grid[newPos]){
+        Grid[originPos] = 0;
+        Grid[newPos] = 1;
+        ParticlesPositions[particle] = newPos;
+    }
+}
+
+int GridMSAF::GetNumberOfParticles(){
+    return NumberOfParticles;
 }
 
 int GridMSAF::FindPosIndex(int x, int y){
@@ -133,12 +139,52 @@ int GridMSAF::ParticleY(int particle){
 }
 
 void GridMSAF::PaintTheGrid(){
-    TCanvas *c = new TCanvas("c", "Canvas", 800, 600);
-    TH2D *histo = new TH2D("histo", "Sim", SideLenght, 0.0, SideLenght, SideLenght, 0.0, SideLenght);
-    for(int particle = 0; particle < NumberOfParticles; particle++){
-        histo->SetBinContent(FindXFromPos(ParticlePos(particle))+1,FindYFromPos(ParticlePos(particle))+1,1);
+    TH2D histo("histo", "Sim", SideLenght, 0.0, SideLenght, SideLenght, 0.0, SideLenght);
+    for(int location = 0; location < SideLenght*SideLenght; location++){
+        histo.SetBinContent(FindXFromPos(location)+1,FindYFromPos(location)+1,Grid[location]);
     }
-    histo->Draw("COLZ");
-    gPad->Modified(); 
+    histo.Draw("COLZ");
     gPad->Update();
+    gSystem->ProcessEvents();
+}
+
+int GridMSAF::CheckNeighbors(int position){
+    int originX = FindXFromPos(position);
+    int originY = FindYFromPos(position);
+    int newX, newY;
+    int neighbors = 0;
+    for(int direction = 0; direction < 4; direction++){
+        switch (direction)
+        {
+        case 0:                   //UP
+            newX = originX;
+            newY = (originY - 1 + SideLenght)%SideLenght;
+            if(IsOccupied(newX,newY)){
+                neighbors++;
+            }
+            break;
+        case 1:                   //RIGHT
+            newX = (originX + 1 + SideLenght)%SideLenght;
+            newY = originY;
+            if(IsOccupied(newX,newY)){
+                neighbors++;
+            }
+            break;
+        case 2:                   //DOWN
+            newX = originX;
+            newY = (originY + 1 + SideLenght)%SideLenght;
+            if(IsOccupied(newX,newY)){
+                neighbors++;
+            }
+            break;
+        case 3:                   //LEFT
+            newX = (originX - 1 + SideLenght)%SideLenght;
+            newY = originY;
+            if(IsOccupied(newX,newY)){
+                neighbors++;
+            }
+            break;
+        }
+    }
+    return neighbors;
 }
