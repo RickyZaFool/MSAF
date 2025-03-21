@@ -6,14 +6,23 @@ all functions start with capital letters
 all temporary variables and function parameters start with low letters and have capitals to separate words
 
 */
+#ifndef GRIDCLASS
+#define GRIDCLASS
+#include <iostream>
 #include <TRandom3.h>
+#include <TH2D.h>
+#include <TApplication.h>
+#include <TCanvas.h>
+#include <TSystem.h>
 
 class GridMSAF
 {
 public:
+
+    void SetGridSeed(int seed);
     void Setup(int sideLenght, float theta, bool ordered);
     void Move(int particle, int direction);
-    void SetGridSeed(int seed);
+    void PaintTheGrid();
     int FindPosIndex(int x, int y);
     int FindXFromPos(int position);
     int FindYFromPos(int position);
@@ -23,13 +32,13 @@ public:
     bool IsOccupied(int position);
     bool IsOccupied(int x, int y);
 
-
 private:
     int SideLenght;
     int Seed = -1;
     TRandom3 Rnd;
     int NumberOfParticles;
-    int SideLenght;
     std::vector<int> Grid;
     std::vector<int> ParticlesPositions;
-}
+};
+
+#endif

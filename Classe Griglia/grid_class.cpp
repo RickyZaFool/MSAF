@@ -10,19 +10,30 @@ int ParticleY(int particle); DONE
 bool IsOccupied(int position); DONE
 bool IsOccupied(int x, int y); DONE
 */
+#include <iostream>
+#include "grid_class.h"
 #include <TRandom3.h>
+#include <TH2D.h>
+#include <TApplication.h>
+#include <TCanvas.h>
+#include <TSystem.h>
 
 
-GridClass::void Setup(int sideLenght, float theta, bool ordered){
+void GridMSAF::SetGridSeed(int seed){
+    Rnd.SetSeed(seed);
+}
+
+void GridMSAF::Setup(int sideLenght, float theta, bool ordered){
     SideLenght = sideLenght;
     if(Seed == -1){
         Rnd.SetSeed(time(0));
     }else{Rnd.SetSeed(Seed);}
 
     NumberOfParticles = int(SideLenght*SideLenght*theta);
-    Grid = new std::vector<int>(SideLenght*SideLenght);
+    Grid = std::vector<int>(SideLenght*SideLenght);
+    ParticlesPositions = std::vector<int>(NumberOfParticles);
     if(ordered){
-        if(theta < 0.5){
+        if(theta <= 0.5){
             for(int i=0; i<NumberOfParticles; i++){
                 if(SideLenght % 2 != 0){
                     Grid[2*i] = 1;
@@ -30,13 +41,15 @@ GridClass::void Setup(int sideLenght, float theta, bool ordered){
                 }
                 else{
                     int tempIndex = 2 * i + 1 * ((i % (SideLenght/2)) ^ 1);
+                    Grid[tempIndex] = 1;
+                    ParticlesPositions[i] = tempIndex;
                 }
             }
         }
         else{
-            cout << "**********************************************************************************************" << endl;
-            cout << "WARNING: Ordered grid for theta greater than half is not yet supported, switching to unordered" << endl;
-            cout << "**********************************************************************************************" << endl;
+            std::cout << "**********************************************************************************************" << std::endl;
+            std::cout << "WARNING: Ordered grid for theta greater than half is not yet supported, switching to unordered" << std::endl;
+            std::cout << "**********************************************************************************************" << std::endl;
             for(int i=0; i<NumberOfParticles; i++){
                 int setupPos = int(Rnd.Rndm()*SideLenght*SideLenght);
                 if(!Grid[setupPos]){
@@ -57,27 +70,27 @@ GridClass::void Setup(int sideLenght, float theta, bool ordered){
     }
 }
 
-GridClass::void Move(int particle, int direction){
+void GridMSAF::Move(int particle, int direction){
     int originPos = ParticlesPositions[particle];
     int originX = FindXFromPos(originPos);
     int originY = FindYFromPos(originPos);
     int newX, newY;
     switch (direction)
     {
-    case 1                   //UP
+    case 1:                   //UP
         newX = originX;
-        newY = (originY - 1 + l)%l;
+        newY = (originY - 1 + SideLenght)%SideLenght;
         break;
-    case 2                   //RIGHT
-        newX = (originX + 1 + l)%l;
+    case 2:                   //RIGHT
+        newX = (originX + 1 + SideLenght)%SideLenght;
         newY = originY;
         break;
-    case 3                   //DOWN
+    case 3:                   //DOWN
         newX = originX;
-        newY = (originY + 1 + l)%l;
+        newY = (originY + 1 + SideLenght)%SideLenght;
         break;
-    case 4                   //LEFT
-        newX = (originX - 1 + l)%l;
+    case 4:                   //LEFT
+        newX = (originX - 1 + SideLenght)%SideLenght;
         newY = originY;
         break;
     }
@@ -87,34 +100,45 @@ GridClass::void Move(int particle, int direction){
     ParticlesPositions[particle] = newPos;
 }
 
-GridClass::int FindPosIndex(int x, int y){
+int GridMSAF::FindPosIndex(int x, int y){
     return x + SideLenght * y;
 }
 
-GridClass::int FindXFromPos(int position){
+int GridMSAF::FindXFromPos(int position){
     return position % SideLenght;
 }
 
-GridClass::int FindYFromPos(int position){
+int GridMSAF::FindYFromPos(int position){
     return position / SideLenght;
 }
 
-GridClass::bool IsOccupied(int position){
+bool GridMSAF::IsOccupied(int position){
     return bool(Grid[position]);
 }
 
-GridClass::bool IsOccupied(int x, int y){
+bool GridMSAF::IsOccupied(int x, int y){
     return bool(Grid[FindPosIndex(x,y)]);
 }
 
-GridClass::int ParticlePos(int particle){
+int GridMSAF::ParticlePos(int particle){
     return ParticlesPositions[particle];
 }
 
-GridClass::int ParticleX(int particle){
+int GridMSAF::ParticleX(int particle){
     return FindXFromPos(ParticlesPositions[particle]);
 }
 
-GridClass::int ParticleY(int particle){
+int GridMSAF::ParticleY(int particle){
     return FindYFromPos(ParticlesPositions[particle]);
+}
+
+void GridMSAF::PaintTheGrid(){
+    TCanvas *c = new TCanvas("c", "Canvas", 800, 600);
+    TH2D *histo = new TH2D("histo", "Sim", SideLenght, 0.0, SideLenght, SideLenght, 0.0, SideLenght);
+    for(int particle = 0; particle < NumberOfParticles; particle++){
+        histo->SetBinContent(FindXFromPos(ParticlePos(particle))+1,FindYFromPos(ParticlePos(particle))+1,1);
+    }
+    histo->Draw("COLZ");
+    gPad->Modified(); 
+    gPad->Update();
 }
